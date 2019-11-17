@@ -16,26 +16,11 @@ services:
     volumes:
       - /data/site_data/jenkins_home:/var/jenkins_home
 
-  db:
-    image: mysql:latest # https://hub.docker.com/_/mysql/ - or mariadb https://hub.docker.com/_/mariadb
-    ports:
-      - ${IP}:3306:3306 # change ip if required
-    command: [
-        '--default_authentication_plugin=mysql_native_password',
-        '--character-set-server=utf8mb4',
-        '--collation-server=utf8mb4_unicode_ci'
-    ]
-    volumes:
-      - /data/site_data/wp-data:/docker-entrypoint-initdb.d
-      - /data/site_data/db_data:/var/lib/mysql
-    environment:
-      MYSQL_DATABASE: "${DB_NAME}"
-      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
- 
   wp:
     image: wordpress:latest # https://hub.docker.com/_/wordpress/
+    container_name: wp
     ports:
-      - 10080:80 # change ip if required
+      - ${IP}:1080:80 # change ip if required
     volumes:
       - ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
       - /data/site_data/wp-app:/var/www/html # Full wordpress project
@@ -62,4 +47,27 @@ services:
       - ./conf.d:/etc/nginx/conf.d
       - /data/logs/nginx:/var/log/nginx
       - /data/site_data/nginx-web:/var/www
+    depends_on:
+      - wp
+      - jenkins
 
+  db:
+    image: mysql:latest # https://hub.docker.com/_/mysql/ - or mariadb https://hub.docker.com/_/mariadb
+    container_name: mysql-db
+    ports:
+      - ${IP}:3306:3306 # change ip if required
+    command: [
+        '--default_authentication_plugin=mysql_native_password',
+        '--character-set-server=utf8mb4',
+        '--collation-server=utf8mb4_unicode_ci'
+    ]
+    volumes:
+      - /data/site_data/db_data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: "${DB_NAME}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MYSQL_PASSWORD: "${DB_ROOT_PASSWORD}"
+
+volumes:
+    db_data: {}
