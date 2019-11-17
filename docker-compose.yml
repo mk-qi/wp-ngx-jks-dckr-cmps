@@ -1,0 +1,30 @@
+version: '2.3'
+services:
+
+  jenkins:
+    container_name: jenkins
+    restart: always
+    image: 'jenkins/jenkins:lts'
+    ports:
+      - '8080:8080'
+      - '50000:50000'
+      - '50022:50022'
+    environment:
+      - TZ=Asia/Shanghai
+        JAVA_OPTS="-Xmx1024m"
+        JENKINS_OPTS=" --handlerCountMax=300"
+    volumes:
+      - /data/site_data/jenkins_home:/var/jenkins_home
+
+  nginx:
+    container_name: nginx
+    restart: always
+    image: nginx:1.17-alpine
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d
+      - /data/logs/nginx:/var/log/nginx
+      - /data/site_data/nginx-web:/var/www
+
